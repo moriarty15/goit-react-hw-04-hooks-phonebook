@@ -31,19 +31,16 @@ export default function ContactForm(props) {
         return;
       }
     }
+    if (!name) return;
 
     e.preventDefault();
     setContacts([{ name: name, number: number, id: uuidv4() }, ...contacts]);
     setName("");
     setNumber("");
   };
-  const handlePushContact = (e) => {
-    e.preventDefault();
-    if (this.state.name.trim() === "") return;
-  };
 
   return (
-    <form onSubmit={handlePushContact}>
+    <form>
       <label className="label">
         Name
         <input
