@@ -1,0 +1,29 @@
+.label {
+  font-size: 19px;
+  line-height: 1.2;
+  font-weight: bold;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+.add__button {
+  font-size: 20px;
+  line-height: 1.3;
+  display: block;
+  margin-top: 15px;
+  height: 50px;
+  width: 200px;
+  background-color: #fff;
+  border-color: #2196f3;
+  color: #1e90ff;
+}
+.add__button:hover {
+  background-color: #2196f3;
+  color: #fff;
+}
