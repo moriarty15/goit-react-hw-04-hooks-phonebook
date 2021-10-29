@@ -1,62 +1,81 @@
-import style from "./App.module.css";
-import React, { Component } from "react";
-import Searchbar from "./Components/Searchbar";
-import ImageGallery from "./Components/ImageGallery";
-import Button from "./Components/Button";
-import Modal from "./Components/Modal";
+import React from "react";
+import { v4 as uuidv4 } from "uuid";
+import ContactForm from "./components/ContactForm";
+import ContactList from "./components/ContactList";
+import Filter from "./components/Filter/Filter";
+import Container from "./components/Container";
 
-class App extends Component {
+class App extends React.Component {
   state = {
-    query: "",
-    page: 1,
-    showModal: false,
-
-    large: null,
-    alt: null,
+    contacts: [],
+    filter: "",
   };
 
   componentDidMount() {
-    // if (localStorage.getItem)
-    localStorage.setItem("images", "[]");
-    window.addEventListener("click", (e) => {
-      const findImg = e.target.src;
-      const arrImg = JSON.parse(localStorage.getItem("images"));
-      const findImgforModal = arrImg.find((e) => e.webformatURL === findImg);
-      if (findImgforModal) {
-        this.setState({ large: findImgforModal.largeImageURL });
-        this.setState({ alt: findImgforModal.user });
-        this.setState({ showModal: true });
-      }
-    });
+    const contacts = JSON.parse(localStorage.getItem("contacts"));
+    if (contacts) {
+      this.setState({ contacts });
+    }
   }
 
-  onClose = () => {
-    this.setState({ showModal: false });
+  componentDidUpdate(prevProps, PrevState) {
+    if (this.state.contacts !== PrevState.contacts)
+      localStorage.setItem("contacts", JSON.stringify(this.state.contacts));
+  }
+  // функция получения значения из любого инпута
+  handleAllInputChange = (e) => {
+    const { name, value } = e.currentTarget;
+    this.setState({ [name]: value });
   };
 
-  handleFormSubmit = (query) => {
-    this.setState({ query });
-    this.setState({ page: 1 });
+  // метод добавления контакта в телефонную книгу
+  formSubmitHandler = (data) => {
+    // условие что контакт с таким именем есть в телефонной книге
+    if (this.state.contacts.some((e) => e.name.includes(data.name))) {
+      alert(`${data.name} is already in contacts`);
+      return;
+    }
+    // объект с именем и номером телефона для пуша в общий массив контактов
+    const objd = {
+      name: data.name,
+      number: data.number,
+      id: uuidv4(),
+    };
+    this.setState({ contacts: [objd, ...this.state.contacts] });
+  };
+  // метод удаления контакта из телефонной книги
+  deleteContact = (contactId) => {
+    this.setState((prevState) => ({
+      contacts: prevState.contacts.filter(
+        (contact) => contact.id !== contactId
+      ),
+    }));
   };
 
-  clickLoadMore = (e) => {
-    e.preventDefault();
-    this.setState((prevState) => {
-      return { page: prevState.page + 1 };
-    });
+  // вынес фильтр в функцию
+  getVisibleContacts = () => {
+    const { filter, contacts } = this.state;
+    const normalizeFilter = filter.toLowerCase();
+    return contacts.filter((contact) =>
+      contact.name.toLowerCase().includes(normalizeFilter)
+    );
   };
 
   render() {
-    const { showModal, large, alt, query } = this.state;
+    const { filter } = this.state;
+    const visibleContacts = this.getVisibleContacts();
     return (
-      <div className={style.App}>
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        <ImageGallery query={this.state.query} page={this.state.page} />
-
-        {query !== "" && <Button onClick={this.clickLoadMore} />}
-        {showModal && <Modal src={large} onClose={this.onClose} alt={alt} />}
-      </div>
+      <Container>
+        <ContactForm onSubmit={this.formSubmitHandler} />
+        <h2>Contacts</h2>
+        <Filter filter={filter} onChange={this.handleAllInputChange} />
+        <ContactList
+          filter={visibleContacts}
+          onDeleteContacts={this.deleteContact}
+        />
+      </Container>
     );
   }
 }
+
 export default App;
