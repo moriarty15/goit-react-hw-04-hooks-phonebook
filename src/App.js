@@ -1,37 +1,36 @@
-import React from "react";
+import {useState, useEffect} from "react";
 import { v4 as uuidv4 } from "uuid";
 import ContactForm from "./components/ContactForm";
 import ContactList from "./components/ContactList";
 import Filter from "./components/Filter/Filter";
 import Container from "./components/Container";
 
-class App extends React.Component {
-  state = {
-    contacts: [],
-    filter: "",
-  };
+function App() {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState('');
 
-  componentDidMount() {
+  useEffect(() => {
     const contacts = JSON.parse(localStorage.getItem("contacts"));
     if (contacts) {
-      this.setState({ contacts });
+      setContacts([...contacts]);
     }
-  }
+  }, [])
 
-  componentDidUpdate(prevProps, PrevState) {
-    if (this.state.contacts !== PrevState.contacts)
-      localStorage.setItem("contacts", JSON.stringify(this.state.contacts));
-  }
+  useEffect(() => {
+    localStorage.setItem("contacts", JSON.stringify(contacts))
+
+  }, [contacts])
+
   // функция получения значения из любого инпута
-  handleAllInputChange = (e) => {
-    const { name, value } = e.currentTarget;
-    this.setState({ [name]: value });
+  const handleAllInputChange = (e) => {
+    const {value } = e.currentTarget;
+    setFilter(value);
   };
 
   // метод добавления контакта в телефонную книгу
-  formSubmitHandler = (data) => {
+  const formSubmitHandler = (data) => {
     // условие что контакт с таким именем есть в телефонной книге
-    if (this.state.contacts.some((e) => e.name.includes(data.name))) {
+    if (contacts.some((e) => e.name.includes(data.name))) {
       alert(`${data.name} is already in contacts`);
       return;
     }
@@ -41,41 +40,37 @@ class App extends React.Component {
       number: data.number,
       id: uuidv4(),
     };
-    this.setState({ contacts: [objd, ...this.state.contacts] });
+    setContacts([objd, ...contacts]);
   };
   // метод удаления контакта из телефонной книги
-  deleteContact = (contactId) => {
-    this.setState((prevState) => ({
-      contacts: prevState.contacts.filter(
+  const deleteContact = (contactId) => {
+    setContacts(contacts.filter(
         (contact) => contact.id !== contactId
       ),
-    }));
+    )
   };
 
   // вынес фильтр в функцию
-  getVisibleContacts = () => {
-    const { filter, contacts } = this.state;
+  const getVisibleContacts = () => {
     const normalizeFilter = filter.toLowerCase();
     return contacts.filter((contact) =>
       contact.name.toLowerCase().includes(normalizeFilter)
     );
   };
 
-  render() {
-    const { filter } = this.state;
-    const visibleContacts = this.getVisibleContacts();
+    const visibleContacts = getVisibleContacts();
     return (
       <Container>
-        <ContactForm onSubmit={this.formSubmitHandler} />
+        <ContactForm onSubmit={formSubmitHandler} />
         <h2>Contacts</h2>
-        <Filter filter={filter} onChange={this.handleAllInputChange} />
+        <Filter filter={filter} onChange={handleAllInputChange} />
         <ContactList
           filter={visibleContacts}
-          onDeleteContacts={this.deleteContact}
+          onDeleteContacts={deleteContact}
         />
       </Container>
     );
-  }
+  
 }
 
 export default App;

@@ -1,47 +1,48 @@
-import React, { Component } from 'react';
+import {useState } from 'react';
 import PropTypes from "prop-types"
 import "./ContactForm.scss";
 
+function ContactForm({onSubmit}) {
+  const [name, setName] = useState('')
+  const [number, setNumber] = useState('')
 
-class ContractForm extends Component {
-  state = {
-    name: '',
-    number: '',
-  };
-
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired,
-  }
-
-  handleAllInputChange = e => {
+  const handleAllInputChange = e => {
     const { name, value } = e.currentTarget;
-    this.setState({ [name]: value });
+    switch (name) {
+      case 'name':
+        setName(value)
+        break;
+      case 'number':
+        setNumber(value)
+        break;
+      default: return
+    }
   };
 
   // функция записи новых абонентов в телефонную книгу
-  handlePushContact = e => {
+  const handlePushContact = e => {
     e.preventDefault();
-    if (this.state.name.trim() === '') return;
+    if (name.trim() === '') return;
 
-    this.props.onSubmit(this.state);
-    this.reset()
+    onSubmit({name, number});
+    reset()
   };
 
-  reset = () => {
-    this.setState({name: '', number: ''})
+  const reset = () => {
+    setNumber('');
+    setName('');
   }
 
-  render() {
-    const { name, number } = this.state;
+
     return (
       <div className="form__container">
-        <form onSubmit={this.handlePushContact}>
+        <form onSubmit={handlePushContact}>
           <label className="label">
             Name
             <input
               className="input"
               value={name}
-              onChange={this.handleAllInputChange}
+              onChange={handleAllInputChange}
               type="text"
               name="name"
               pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
@@ -56,7 +57,7 @@ class ContractForm extends Component {
               className="input"
               type="tel"
               value={number}
-              onChange={this.handleAllInputChange}
+              onChange={handleAllInputChange}
               name="number"
               pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
               title="Номер телефона должен состоять цифр и может содержать пробелы, тире, круглые скобки и может начинаться с +"
@@ -68,7 +69,11 @@ class ContractForm extends Component {
         </form>
       </div>
     );
-  }
 }
 
-export default ContractForm;
+export default ContactForm;
+
+
+ContactForm.propTypes = {
+    onSubmit: PropTypes.func.isRequired,
+  }
