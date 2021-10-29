@@ -1,58 +1,62 @@
-import { useState, useEffect } from "react";
-import ContactForm from "./Components/ContactForm";
-import Filter from "./Components/Filter";
-import Container from './Components/Container'
-import ContactList from "./Components/ContactList";
+import style from "./App.module.css";
+import React, { Component } from "react";
+import Searchbar from "./Components/Searchbar";
+import ImageGallery from "./Components/ImageGallery";
+import Button from "./Components/Button";
+import Modal from "./Components/Modal";
 
-function App() {
-  if (!localStorage.getItem('contacts')) {
-    localStorage.setItem('contacts', '[]')
+class App extends Component {
+  state = {
+    query: "",
+    page: 1,
+    showModal: false,
+
+    large: null,
+    alt: null,
+  };
+
+  componentDidMount() {
+    // if (localStorage.getItem)
+    localStorage.setItem("images", "[]");
+    window.addEventListener("click", (e) => {
+      const findImg = e.target.src;
+      const arrImg = JSON.parse(localStorage.getItem("images"));
+      const findImgforModal = arrImg.find((e) => e.webformatURL === findImg);
+      if (findImgforModal) {
+        this.setState({ large: findImgforModal.largeImageURL });
+        this.setState({ alt: findImgforModal.user });
+        this.setState({ showModal: true });
+      }
+    });
   }
-  const [contacts, setContacts] = useState(JSON.parse(localStorage.getItem('contacts')));
 
-  const [filter, setFilter] = useState("");
-
-  useEffect(() => {
-    window.localStorage.setItem('contacts', JSON.stringify(contacts))
-  }, [contacts])
-
-  const handelChange = (e) => {
-    const { name, value } = e.target;
-    switch (name) {
-      case "filter":
-        setFilter(value);
-        break;
-      default:
-        return;
-    }
+  onClose = () => {
+    this.setState({ showModal: false });
   };
 
-  const getVisibleContacts = () => {
-    const normalizeFilter = filter.toLowerCase();
-    if (contacts) {
-      return contacts.filter((contact) =>
-      contact.name.toLowerCase().includes(normalizeFilter)
+  handleFormSubmit = (query) => {
+    this.setState({ query });
+    this.setState({ page: 1 });
+  };
+
+  clickLoadMore = (e) => {
+    e.preventDefault();
+    this.setState((prevState) => {
+      return { page: prevState.page + 1 };
+    });
+  };
+
+  render() {
+    const { showModal, large, alt, query } = this.state;
+    return (
+      <div className={style.App}>
+        <Searchbar onSubmit={this.handleFormSubmit} />
+        <ImageGallery query={this.state.query} page={this.state.page} />
+
+        {query !== "" && <Button onClick={this.clickLoadMore} />}
+        {showModal && <Modal src={large} onClose={this.onClose} alt={alt} />}
+      </div>
     );
-    }
-    
-  };
-
-  const onDeleteContact = contactId => {
-    return setContacts(contacts.filter(contact => contact.id !== contactId))
-   }
-
-  const visibleContacts = getVisibleContacts();
-
-  return (
-    <Container>
-      <ContactForm contacts={contacts} setContacts={setContacts} />
-      <h2>Contacts</h2>
-      <Filter handelChange={handelChange} />
-      <ContactList visibleContacts={visibleContacts}
-        onDeleteContact={onDeleteContact}
-      />
-    </Container>
-  );
+  }
 }
-
 export default App;
